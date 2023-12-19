@@ -1,0 +1,131 @@
+/*  Terminal App using Textual Python */
+
+#assistant_container {
+    width: 30%;
+    height: 100%;
+    border-right: tall gray;
+    padding: 1;
+}
+
+PlaceholderWithLabel {
+    height: auto;
+    margin-top: 1;
+}
+
+PlaceholderWithLabel .label {
+    text-style: bold underline;
+    width: auto;
+}
+
+PlaceholderWithLabel .placeholder {
+    background: rgb(22, 22, 22);
+    width: 100%;
+    height: auto;
+}
+
+Button {
+    margin-top: 1;
+    padding-left: 2;
+    padding-right: 2;
+}
+
+.remove {
+    display: none;
+}
+
+.singleline {
+    layout: horizontal;
+}
+
+.multiline {
+    layout: vertical;
+}
+
+ThreadListContainer {
+    align: left top;
+    width: 30%;
+    border-right: tall gray;
+    padding: 1;
+}
+
+ThreadListContainer .actions {
+    align: right middle;
+    width: 100%;
+    height: auto;
+}
+
+ThreadListContainer #assistant_name {
+    padding-left: 2;
+    margin: 1;
+    border: tall $surface-lighten-2;
+}
+
+ThreadListContainer Label {
+    text-style: bold underline;
+}
+
+ThreadListContainer ListView {
+    width: 100%;
+    height: auto;
+}
+
+ThreadListContainer ListItem {
+    padding: 1;
+}
+
+ThreadListContainer ListItem Label {
+    text-style: none;
+}
+
+ThreadMessagesContainer {
+    width: 70%;
+    height: 100%;
+    padding-left: 4;
+    padding-right: 4;
+}
+
+ThreadMessagesContainer NewMessage {
+    width: 80%;
+    height: 5;
+}
+
+
+ThreadMessagesContainer NewMessage TextArea {
+    height: 100%;
+    border: round $secondary-darken-2;
+}
+
+ThreadMessagesContainer NewMessage Button {
+    height: 100%;
+    margin: 1;
+}
+
+ThreadMessagesContainer MessageList {
+    align: center bottom;
+}
+
+ThreadMessagesContainer MessageList ThreadMessage {
+    height: auto;
+    layout: horizontal;
+}
+
+ThreadMessagesContainer MessageList ThreadMessage #message_container {
+    height: auto;
+    layout: vertical;
+    align: left middle;
+}
+
+ThreadMessagesContainer MessageList .avatar {
+    margin-top: 1;
+    width: auto;
+}
+
+ThreadMessagesContainer MessageList ThreadMessage .message {
+    width: auto;
+    max-width: 80%;
+    border: round gray;
+}
+
+ThreadMessagesContainer MessageList UserMessage .message {
+    border: round rgb(107, 198, 107);
+}
