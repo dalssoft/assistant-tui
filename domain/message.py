@@ -29,7 +29,7 @@ class Message:
             content=text,
         )
         new_message = Message.from_raw(thread, thread_message)
-        log_action(Message, "create", new_message)
+        log_action(new_message, "create", new_message)
         return new_message
 
     @staticmethod
@@ -40,7 +40,7 @@ class Message:
             thread_id=thread.id,
         )
         message = Message.from_raw(thread, thread_message)
-        log_action(Message, "retrieve", message)
+        log_action(thread_message, "retrieve", message)
         return message
 
     @staticmethod

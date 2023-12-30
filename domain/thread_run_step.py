@@ -14,7 +14,7 @@ class ThreadRunStep:
     }
 
     time_to_wait = 1
-    time_to_timeout = 10
+    time_to_timeout = 120
 
     def __init__(self, thread_run, id=None):
         self.client = OpenAI()
