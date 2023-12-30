@@ -1,3 +1,4 @@
+from concurrent.futures import thread
 from textual import on
 from textual.containers import ScrollableContainer
 from textual.widgets import Header, Footer, Label, ListView, ListItem, Button, Static
@@ -14,11 +15,11 @@ class ThreadListContainer(ScrollableContainer):
     current_thread = reactive(None)
 
     def compose(self):
-        yield Static(id="assistant_name")
-        yield Label("Threads:")
-        yield ListView(id="thread_list")
-        yield Container(
-            Button("Create Thread", id="create_thread_button"), classes="actions"
+        yield Vertical(
+            Static(id="assistant_name"),
+            Label("Threads:"),
+            ListView(id="thread_list"),
+            Button("Create Thread", id="create_thread_button"),
         )
 
     @on(Button.Pressed, "#create_thread_button")
@@ -62,8 +63,15 @@ class ThreadListContainer(ScrollableContainer):
         log_action(self, "list_all_threads")
 
     def create_thread(self):
-        self.current_thread = ThreadList(self.assistant.id).create_thread("New Thread")
+        thread_name = "New Thread - " + str(len(self.threads) + 1)
+        self.current_thread = ThreadList(self.assistant.id).create_thread(thread_name)
         self.list_all_threads(self.assistant)
+        list = self.query_one("#thread_list")
+        items = list.children
+        for index, item in enumerate(items):
+            if item.id == self.current_thread.id:
+                list.index = index
+
         log_action(self, "create_thread")
 
     def select_thread(self, thread_id):

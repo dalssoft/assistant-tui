@@ -48,13 +48,14 @@ ThreadListContainer {
     padding: 1;
 }
 
-ThreadListContainer .actions {
-    align: right middle;
+ThreadListContainer #create_thread_button {
+    dock: bottom;
     width: 100%;
     height: auto;
 }
 
 ThreadListContainer #assistant_name {
+    dock: top;
     padding-left: 2;
     margin: 1;
     border: tall $surface-lighten-2;

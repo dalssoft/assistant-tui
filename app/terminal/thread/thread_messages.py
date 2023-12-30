@@ -54,12 +54,12 @@ class MessageList(ScrollableContainer):
     async def clear(self):
         await self.remove_children()
 
-    async def _add_user_message(self, message):
+    async def add_user_message(self, message):
         user_message = UserMessage(message.text(), id=message.id)
         await self.mount(user_message)
         return user_message
 
-    async def _add_assistant_message(self, message):
+    async def add_assistant_message(self, message):
         assistant_message = AssistantMessage(message.text(), id=message.id)
         await self.mount(assistant_message)
         return assistant_message
@@ -73,34 +73,13 @@ class MessageList(ScrollableContainer):
         messages = thread.retrieve_messages(order="asc")
         for message in messages:
             add_message = {
-                "user": self._add_user_message,
-                "assistant": self._add_assistant_message,
+                "user": self.add_user_message,
+                "assistant": self.add_assistant_message,
             }
             await add_message[message.role](message)
 
         self.scroll_end(animate=True, duration=0.2)
         self.loading = False
-
-    async def retrieve_assistant_new_message(self, message_id):
-        message = self.thread.retrieve_message_and_append(message_id)
-        assistant_message = await self._add_assistant_message(message)
-        self.scroll_to_widget(assistant_message, animate=True)
-
-    async def new_message(self, assistant, thread, text):
-        message = Msg.create(thread, text)
-        ui_user_message = await self._add_user_message(message)
-        ui_user_message.scroll_visible(animate=True)
-        run = ThreadRun(assistant, thread)
-        run.watch_for_status_change(self._on_run_completion)
-        run.watch_for_new_step(self._on_new_step)
-        run.create()
-        await run.wait_for_completion()
-
-    def _on_run_completion(self, thread_run):
-        log_action(self, "_on_run_completion", thread_run)
-
-    async def _on_new_step(self, thread_run_step):
-        await self.retrieve_assistant_new_message(thread_run_step.message_id())
 
 
 class NewMessage(ScrollableContainer):
@@ -138,10 +117,7 @@ class ThreadMessagesContainer(ScrollableContainer):
         yield Center(NewMessage(id="new_message"))
 
     async def on_new_message_message_sent(self, event):
-        await self.process_new_message(event.text)
-
-    async def process_new_message(self, text):
-        await self.message_list.new_message(self.assistant, self.thread, text)
+        await self.new_message(self.assistant, self.thread, event.text)
 
     async def watch_thread(self, thread):
         await self.fill_message_list(thread)
@@ -150,3 +126,30 @@ class ThreadMessagesContainer(ScrollableContainer):
         if thread is None:
             return
         await self.message_list.fill(thread)
+
+    async def new_message(self, assistant, thread, text):
+        button = self.query_one("#send_message_button")
+        button.loading = True
+        button.disabled = True
+        message = Msg.create(thread, text)
+        ui_user_message = await self.message_list.add_user_message(message)
+        ui_user_message.scroll_visible(animate=True)
+        run = ThreadRun(assistant, thread)
+        run.watch_for_status_change(self._on_run_completion)
+        run.watch_for_new_step(self._on_new_step)
+        run.create()
+        await run.wait_for_completion()
+
+    def _on_run_completion(self, thread_run):
+        log_action(self, "_on_run_completion", thread_run)
+
+    async def _on_new_step(self, thread_run_step):
+        await self.retrieve_assistant_new_message(thread_run_step.message_id())
+
+    async def retrieve_assistant_new_message(self, message_id):
+        message = self.thread.retrieve_message_and_append(message_id)
+        assistant_message = await self.message_list.add_assistant_message(message)
+        self.message_list.scroll_end(animate=True, duration=0.2)
+        button = self.query_one("#send_message_button")
+        button.loading = False
+        button.disabled = False
