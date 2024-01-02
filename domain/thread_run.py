@@ -37,45 +37,46 @@ class ThreadRun:
         self.callbacks = {
             "status_change": [],
             "new_step": [],
+            "new_step_completed": [],
         }
 
-    def _update_from_raw(self, thread_run):
+    async def _update_from_raw(self, thread_run):
         self.thread_run = thread_run
         previous_status = self.status
         self.status = thread_run.status
         if previous_status != self.status:
-            self._on_status_change()
+            await self._on_status_change()
 
-    def create(self):
+    async def create(self):
         run = self.client.beta.threads.runs.create(
             thread_id=self.thread.id,
             assistant_id=self.assistant.id,
         )
         self.id = run.id
-        self._update_from_raw(run)
+        await self._update_from_raw(run)
 
         log_action(self, "create", run)
 
         return self
 
-    def retrieve(self):
+    async def retrieve(self):
         run = self.client.beta.threads.runs.retrieve(
             thread_id=self.thread.id,
             run_id=self.id,
         )
         self.thread_run = run
-        self._update_from_raw(run)
+        await self._update_from_raw(run)
 
         log_action(self, "retrieve", run)
 
         return self
 
-    def cancel(self):
+    async def cancel(self):
         run = self.client.beta.threads.runs.cancel(
             thread_id=self.thread.id,
             run_id=self.id,
         )
-        self._update_from_raw(run)
+        await self._update_from_raw(run)
 
         log_action(self, "cancel", run)
 
@@ -84,26 +85,34 @@ class ThreadRun:
     def watch_for_status_change(self, callback):
         self.callbacks["status_change"].append(callback)
 
-    def _on_status_change(self):
+    async def _on_status_change(self):
         for callback in self.callbacks["status_change"]:
-            callback(self)
+            await callback(self)
 
     def watch_for_new_step(self, callback):
         self.callbacks["new_step"].append(callback)
 
+    def watch_for_new_step_completed(self, callback):
+        self.callbacks["new_step_completed"].append(callback)
+
     async def _on_new_step(self, new_step):
-        new_step.wait_for_completion()
         for callback in self.callbacks["new_step"]:
+            await callback(new_step)
+
+        new_step.wait_for_completion()
+
+        for callback in self.callbacks["new_step_completed"]:
             await callback(new_step)
 
     async def wait_for_completion(self):
         thread = Thread(target=asyncio.run, args=(self._pooling(),))
         thread.start()
+        # await self._pooling()
 
     async def _pooling(self):
         log_action(self, "_pooling")
 
         while self.status in self.run_status_to_watch:
-            self.retrieve()
+            await self.retrieve()
             await self.stepList.retrieve()
-            time.sleep(2)
+            time.sleep(0.2)

@@ -91,10 +91,8 @@ ThreadMessagesContainer NewMessage {
     padding: 1;
 }
 
-
 ThreadMessagesContainer NewMessage TextArea {
     height: 100%;
-    /* border: round $secondary-darken-2; */
     border: tall black;
 }
 
@@ -102,6 +100,10 @@ ThreadMessagesContainer NewMessage Button {
     height: 100%;
     margin-left: 1;
     margin-right: 1;
+}
+
+ThreadMessagesContainer NewMessage Checkbox {
+    margin-top: 1;
 }
 
 ThreadMessagesContainer MessageList {
@@ -132,4 +134,13 @@ ThreadMessagesContainer MessageList ThreadMessage .message {
 
 ThreadMessagesContainer MessageList UserMessage .message {
     border: round rgb(107, 198, 107);
+}
+
+ThreadMessagesContainer MessageList DebugMessage .message {
+    border: round rgb(100, 100, 100);
+    color: rgb(100, 100, 100);
+}
+
+ThreadMessagesContainer MessageList DebugMessage .avatar {
+    color: rgb(100, 100, 100);
 }

@@ -34,15 +34,18 @@ class ThreadRunStep:
         )
         self.thread_run_step = step
         self.status = step.status
+        self.type = step.step_details.type
         log_action(self, "retrieve", step)
         return self
 
-    def message_id(self):
-        return self.thread_run_step.step_details.message_creation.message_id
-
     @staticmethod
     def from_raw(thread_run, thread_run_step):
-        step = ThreadRunStep(thread_run, thread_run_step.id)
+        types = [MessageCreationStep, ToolCallStep]
+        step = None
+        for type in types:
+            if type.is_type(thread_run_step):
+                step = type(thread_run, thread_run_step)
+                break
         step.thread_run_step = thread_run_step
         step.status = thread_run_step.status
         return step
@@ -77,3 +80,87 @@ class ThreadRunStep:
     def _on_status_change(self):
         for callback in self.callbacks["status_change"]:
             callback(self)
+
+    def debug(self):
+        return f"""
+        | id: {self.id}
+        | status: {self.status}
+        | type: {self.thread_run_step.step_details.type}"""
+
+
+class MessageCreationStep(ThreadRunStep):
+    type = "message_creation"
+
+    def __init__(self, thread_run, thread_run_step):
+        super().__init__(thread_run, thread_run_step.id)
+        self.thread_run_step = thread_run_step
+
+    @staticmethod
+    def is_type(step):
+        return step.step_details.type == MessageCreationStep.type
+
+    def message_id(self):
+        return self.thread_run_step.step_details.message_creation.message_id
+
+    def debug(self):
+        return (
+            super().debug()
+            + f"""        
+        | message_id: {self.message_id()}
+        """
+        )
+
+
+class ToolCallStep(ThreadRunStep):
+    type = "tool_calls"
+
+    def __init__(self, thread_run, thread_run_step):
+        super().__init__(thread_run, thread_run_step.id)
+        thread_run_step = thread_run_step
+        self.tool_calls = thread_run_step.step_details.tool_calls
+
+    @staticmethod
+    def is_type(step):
+        return step.step_details.type == ToolCallStep.type
+
+    def debug(self):
+        def code_interpreter_debug(tool_call):
+            if tool_call.type != "code_interpreter":
+                return ""
+            return f"""
+            | input: {tool_call.code_interpreter.input}
+            | outputs: {tool_call.code_interpreter.outputs}
+            """
+
+        def retrieval_debug(tool_call):
+            if tool_call.type != "retrieval":
+                return ""
+            return f"""
+            | retrieval: {tool_call.retrieval.retrieval}
+            """
+
+        def function_debug(tool_call):
+            if tool_call.type != "function":
+                return ""
+            return f"""
+            | name: {tool_call.function.name}
+            | args: {tool_call.function.arguments}
+            | output: {tool_call.function.output}
+            """
+
+        debugs = []
+        for tool_call in self.tool_calls:
+            debugs.append(
+                f"""
+            | type: {tool_call.type}"""
+                + code_interpreter_debug(tool_call)
+                + retrieval_debug(tool_call)
+                + function_debug(tool_call)
+            )
+
+        return (
+            super().debug()
+            + f"""
+        | tool_calls: {"".join(debugs)}
+        """
+        )
