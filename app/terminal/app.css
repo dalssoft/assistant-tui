@@ -12,7 +12,7 @@ PlaceholderWithLabel {
     margin-top: 1;
 }
 
-PlaceholderWithLabel .label {
+AssistantContainer .label {
     text-style: bold underline;
     width: auto;
 }
@@ -21,6 +21,35 @@ PlaceholderWithLabel .placeholder {
     background: rgb(22, 22, 22);
     width: 100%;
     height: auto;
+    margin-left: 1;
+}
+
+AssistantContainer .tools {
+    height: auto;
+    margin-top: 1;
+}
+
+AssistantContainer ToolSwitch {
+    align: left middle;
+    height: auto;
+    margin-top: 1;
+}
+
+AssistantContainer ToolSwitch Switch {
+    width: auto;
+}
+
+AssistantContainer ToolSwitch Middle {
+    height: 100%;
+}
+
+AssistantContainer ToolSwitch Static {
+    width: auto;
+}
+
+AssistantContainer .tools PlaceholderWithLabel {
+    height: auto;
+    margin-left: 10;
 }
 
 Button {

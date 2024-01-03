@@ -180,6 +180,7 @@ class ThreadMessagesContainer(ScrollableContainer):
                 | status: {thread_run.status}
                 """
             )
+            self.message_list.scroll_end()
 
     async def _on_new_step(self, thread_run_step):
         if self.is_debug:
@@ -188,6 +189,7 @@ class ThreadMessagesContainer(ScrollableContainer):
                 {thread_run_step.debug()}
                 """
             )
+            self.message_list.scroll_end()
 
     async def _on_new_step_completed(self, thread_run_step):
         if self.is_debug:
@@ -196,6 +198,8 @@ class ThreadMessagesContainer(ScrollableContainer):
                 {thread_run_step.debug()}
                 """
             )
+            self.message_list.scroll_end()
+
         if thread_run_step.type == "message_creation":
             await self.retrieve_assistant_new_message(thread_run_step.message_id())
 

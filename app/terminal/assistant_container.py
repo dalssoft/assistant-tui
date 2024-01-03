@@ -1,11 +1,13 @@
+from os import name
 from textual import on
 from textual.app import App, ComposeResult
 from textual.containers import ScrollableContainer
-from textual.widgets import Header, Footer, Static, Select, Label, Button
+from textual.widgets import Header, Footer, Static, Select, Label, Button, Switch
 from textual.containers import Horizontal, Vertical, Middle, Center
 from textual.message import Message
 from domain.assistant import Assistant
 from log import log_action
+from textual.reactive import reactive
 
 
 class PlaceholderWithLabel(Static):
@@ -20,6 +22,25 @@ class PlaceholderWithLabel(Static):
         yield Label(
             self.placeholder_text, id=self.placeholder_id, classes="placeholder"
         )
+
+
+class ToolSwitch(Horizontal):
+    value = reactive(False)
+    switch = None
+
+    def __init__(self, label, id):
+        self.label = label
+        super().__init__(id=id)
+
+    def compose(self):
+        self.switch = Switch(value=self.value, disabled=True)
+        yield self.switch
+        yield Middle(Static(self.label))
+
+    def watch_value(self, value):
+        if self.switch is None:
+            return
+        self.switch.value = value
 
 
 class AssistantContainer(ScrollableContainer):
@@ -43,7 +64,6 @@ class AssistantContainer(ScrollableContainer):
         assistants = list(
             (assistant.name, assistant.id) for assistant in self.assistants
         )
-        # assistants = [("assistant1", "1"), ("assistant2", "2")]
         self.query_one("#assistant_name").set_options(assistants)
         log_action(self, "list_all_assistants", self.assistants)
 
@@ -55,10 +75,23 @@ class AssistantContainer(ScrollableContainer):
         inner_assistant = assistant.assistant
         self.query_one("#instructions").update(inner_assistant.instructions)
         self.query_one("#model").update(inner_assistant.model)
-        self.query_one("#tools").update(
-            ", ".join(list(tool.type for tool in inner_assistant.tools))
+        self.query_one("#code_interpreter").value = any(
+            tool.type == "code_interpreter" for tool in inner_assistant.tools
         )
-        self.query_one("#files").update(str(inner_assistant.file_ids))
+        self.query_one("#retrieval").value = any(
+            tool.type == "retrieval" for tool in inner_assistant.tools
+        )
+        self.query_one("#function").value = any(
+            tool.type == "function" for tool in inner_assistant.tools
+        )
+        functions = list(
+            tool.function.name
+            for tool in inner_assistant.tools
+            if tool.type == "function"
+        )
+        self.query_one("#functions").update(", ".join(functions))
+
+        self.query_one("#files").update(", ".join(inner_assistant.file_ids))
         log_action(self, "select_assistant", assistant)
 
     def use_assistant(self):
@@ -78,9 +111,25 @@ class AssistantContainer(ScrollableContainer):
             "As a bakery assistant...",
             classes="multiline",
         )
-        yield PlaceholderWithLabel("Model:", "model", "gpt4")
-        yield PlaceholderWithLabel("Tools:", "tools", "code_interpreter")
-        yield PlaceholderWithLabel("Files:", "files", "file1")
+        yield PlaceholderWithLabel("Model:", "model", "")
+        yield Vertical(
+            Label("Tools:", classes="label"),
+            ToolSwitch(
+                "Code Interpreter",
+                id="code_interpreter",
+            ),
+            ToolSwitch(
+                "Retrival",
+                id="retrieval",
+            ),
+            ToolSwitch(
+                "Function",
+                id="function",
+            ),
+            PlaceholderWithLabel("Functions:", "functions", ""),
+            classes="tools",
+        )
+        yield PlaceholderWithLabel("Files:", "files", "")
         yield Center(Button("Use this assistant", id="use_assistant"))
 
     class AssistantSelected(Message):

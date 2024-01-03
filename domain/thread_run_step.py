@@ -135,8 +135,9 @@ class ToolCallStep(ThreadRunStep):
         def retrieval_debug(tool_call):
             if tool_call.type != "retrieval":
                 return ""
+            retrieval = tool_call.retrieval.retrieval if tool_call.retrieval else None
             return f"""
-            | retrieval: {tool_call.retrieval.retrieval}
+            | retrieval: {retrieval}
             """
 
         def function_debug(tool_call):

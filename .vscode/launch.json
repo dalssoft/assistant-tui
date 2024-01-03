@@ -12,7 +12,6 @@
             "args": [],
             "console": "integratedTerminal",
             "justMyCode": true,
-            // "subProcess": true
         },
     ]
 }
