@@ -10,26 +10,7 @@ class Assistant:
         self.name = assistant.name if assistant else None
 
     @staticmethod
-    def create():
-        name = "Pan Padaria Assistant"
-
-        instructions = """
-        Voce é um assistente pessoal da uma padaria de pães artesanais. 
-        Sua principal usuária é a dona da padaria, que está sempre muito ocupada e precisa de ajuda para gerenciar a padaria.
-        Sua tarefa é responder perguntas sobre todos os processos que envolvem a vida dessa padaria:
-        - Finanças
-        - Produção
-        - Vendas
-        - Marketing
-        - Recursos Humanos
-        - Logística
-        - Atendimento ao cliente
-
-        Quando o conhecimento for específico da padaria, buscar de fontes externas.
-
-        Quando não souber a resposta, não invente e diga que não sabe.
-        """
-
+    def create(name, instructions):
         # Create a new assistant
         client = OpenAI()
         my_assistant = client.beta.assistants.create(
