@@ -102,11 +102,11 @@ class Run:
             await self.thread.retrieve_message_and_append(new_step.message_id())
 
     async def wait_for_completion(self):
-        thread = Thread(target=asyncio.run, args=(self._pooling(),))
+        thread = Thread(target=asyncio.run, args=(self._polling(),))
         thread.start()
-        # await self._pooling()
+        # await self._polling()
 
-    async def _pooling(self):
+    async def _polling(self):
         run_status_to_watch = [
             self.run_status["queued"],
             self.run_status["in_progress"],
@@ -115,7 +115,7 @@ class Run:
         ]
 
         while self.status in run_status_to_watch:
-            log_action(self, "_pooling")
+            log_action(self, "_polling")
             await self.step_list.refresh()
             await self.refresh()
             time.sleep(0.1)
