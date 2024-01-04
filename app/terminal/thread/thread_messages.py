@@ -8,7 +8,7 @@ from textual.containers import Vertical, Container, Horizontal, Center
 from textual.reactive import reactive
 from textual.message import Message
 from domain.message import Message as Msg
-from domain.thread_run import ThreadRun
+from domain.run import Run
 from log import log_action
 import time
 
@@ -172,7 +172,7 @@ class ThreadMessagesContainer(ScrollableContainer):
         message = Msg.create(thread, text)
         ui_user_message = await self.message_list().add_user_message(message)
         ui_user_message.scroll_visible(animate=True)
-        run = ThreadRun(assistant, thread)
+        run = Run(assistant, thread)
         run.watch_for_status_change(self._on_status_change)
         run.watch_for_new_step(self._on_new_step)
         run.watch_for_new_step_completed(self._on_new_step_completed)

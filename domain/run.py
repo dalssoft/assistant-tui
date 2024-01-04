@@ -1,12 +1,12 @@
 from log import log_action
 from openai import OpenAI
 from threading import Thread
-from domain.thread_run_step_list import ThreadRunStepList
+from domain.steps.step_list import StepList
 import time
 import asyncio
 
 
-class ThreadRun:
+class Run:
     run_status = {
         "queued": "queued",
         "in_progress": "in_progress",
@@ -31,8 +31,8 @@ class ThreadRun:
         self.thread = thread
         self.id = id
         self.thread_run = None
-        self.stepList = ThreadRunStepList(self)
-        self.stepList.watch_for_new_step(self._on_new_step)
+        self.step_list = StepList(self)
+        self.step_list.watch_for_new_step(self._on_new_step)
         self.status = self.run_status["queued"]
         self.callbacks = {
             "status_change": [],
@@ -59,7 +59,7 @@ class ThreadRun:
 
         return self
 
-    async def retrieve(self):
+    async def refresh(self):
         run = self.client.beta.threads.runs.retrieve(
             thread_id=self.thread.id,
             run_id=self.id,
@@ -113,6 +113,6 @@ class ThreadRun:
         log_action(self, "_pooling")
 
         while self.status in self.run_status_to_watch:
-            await self.retrieve()
-            await self.stepList.retrieve()
+            await self.refresh()
+            await self.step_list.refresh()
             time.sleep(0.1)
