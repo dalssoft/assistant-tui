@@ -115,4 +115,4 @@ class ThreadRun:
         while self.status in self.run_status_to_watch:
             await self.retrieve()
             await self.stepList.retrieve()
-            time.sleep(0.2)
+            time.sleep(0.1)
