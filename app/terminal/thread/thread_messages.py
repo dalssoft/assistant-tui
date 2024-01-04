@@ -34,6 +34,10 @@ class ThreadMessage(Container):
 
 
 class AssistantMessage(ThreadMessage):
+    def __init__(self, text, annotations, **kwargs):
+        self.annotations = annotations
+        super().__init__(text, **kwargs)
+
     def compose(self):
         self.avatar = "🤖 Assistant"
         self.title = ""
@@ -69,7 +73,9 @@ class MessageList(ScrollableContainer):
         return user_message
 
     async def add_assistant_message(self, message):
-        assistant_message = AssistantMessage(message.text(), id=message.id)
+        assistant_message = AssistantMessage(
+            message.text(), message.annotations(), id=message.id
+        )
         await self.mount(assistant_message)
         return assistant_message
 
@@ -138,11 +144,12 @@ class ThreadMessagesContainer(ScrollableContainer):
     thread = reactive(None)
     is_debug = reactive(False)
 
-    message_list = MessageList(id="messages")
-
     def compose(self):
-        yield self.message_list
+        yield MessageList(id="message_list")
         yield Center(NewMessage(id="new_message"))
+
+    def message_list(self):
+        return self.query_one("#message_list")
 
     async def on_new_message_message_sent(self, event):
         await self.new_message(self.assistant, self.thread, event.text)
@@ -156,14 +163,14 @@ class ThreadMessagesContainer(ScrollableContainer):
     async def fill_message_list(self, thread):
         if thread is None:
             return
-        await self.message_list.fill(thread)
+        await self.message_list().fill(thread)
 
     async def new_message(self, assistant, thread, text):
         button = self.query_one("#send_message_button")
         button.loading = True
         button.disabled = True
         message = Msg.create(thread, text)
-        ui_user_message = await self.message_list.add_user_message(message)
+        ui_user_message = await self.message_list().add_user_message(message)
         ui_user_message.scroll_visible(animate=True)
         run = ThreadRun(assistant, thread)
         run.watch_for_status_change(self._on_status_change)
@@ -174,39 +181,40 @@ class ThreadMessagesContainer(ScrollableContainer):
 
     async def _on_status_change(self, thread_run):
         if self.is_debug:
-            await self.message_list.add_debug_message(
+            await self.message_list().add_debug_message(
                 f"""Run status changed
                 | id: {thread_run.id}
                 | status: {thread_run.status}
                 """
             )
-            self.message_list.scroll_end()
+            self.message_list().scroll_end()
 
     async def _on_new_step(self, thread_run_step):
         if self.is_debug:
-            await self.message_list.add_debug_message(
+            await self.message_list().add_debug_message(
                 f"""New step 
                 {thread_run_step.debug()}
                 """
             )
-            self.message_list.scroll_end()
+            self.message_list().scroll_end()
 
     async def _on_new_step_completed(self, thread_run_step):
         if self.is_debug:
-            await self.message_list.add_debug_message(
+            await self.message_list().add_debug_message(
                 f"""New step completed
                 {thread_run_step.debug()}
                 """
             )
-            self.message_list.scroll_end()
+            self.message_list().scroll_end()
 
         if thread_run_step.type == "message_creation":
             await self.retrieve_assistant_new_message(thread_run_step.message_id())
 
     async def retrieve_assistant_new_message(self, message_id):
+        message_list = self.message_list()
         message = self.thread.retrieve_message_and_append(message_id)
-        await self.message_list.add_assistant_message(message)
-        self.message_list.scroll_end(animate=True, duration=0.2)
+        await message_list.add_assistant_message(message)
+        message_list.scroll_end(animate=True, duration=0.2)
         button = self.query_one("#send_message_button")
         button.loading = False
         button.disabled = False
