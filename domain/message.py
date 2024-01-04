@@ -15,6 +15,10 @@ class Message:
         texts = list(content.text.value for content in self.content)
         return " ".join(texts)
 
+    def annotations(self):
+        # TODO: Currently the API is not returning annotations
+        return list(content.text.annotations for content in self.content)
+
     @staticmethod
     def create(thread, text):
         if thread is None:
