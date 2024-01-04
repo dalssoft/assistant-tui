@@ -10,6 +10,7 @@ class CodeInterpreterTool(Tool):
 
     def debug(self):
         return f"""
-        | input: {self.tool_call.code_interpreter.input}
-        | outputs: {self.tool_call.code_interpreter.outputs}
+        | type: {self.type}
+            | input: {self.tool_call.code_interpreter.input}
+            | outputs: {self.tool_call.code_interpreter.outputs}
         """

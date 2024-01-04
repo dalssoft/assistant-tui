@@ -10,7 +10,8 @@ class FunctionTool(Tool):
 
     def debug(self):
         return f"""
-        | function: {self.tool_call.function.function}
-        | inputs: {self.tool_call.function.inputs}
-        | outputs: {self.tool_call.function.outputs}
+        | type: {self.type}
+            | function: {self.tool_call.function.function}
+            | inputs: {self.tool_call.function.inputs}
+            | outputs: {self.tool_call.function.outputs}
         """

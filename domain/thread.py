@@ -10,6 +10,9 @@ class Thread:
         self.name = None
         self._thread = None
         self.messages = []
+        self.callbacks = {
+            "new_message": [],
+        }
 
     def create(self, name):
         empty_thread = self.client.beta.threads.create()
@@ -46,7 +49,6 @@ class Thread:
             after=after,
         )
 
-        # transform raw messages into Message objects
         messages = []
         for thread_message in thread_messages.data:
             message = Message.from_raw(self, thread_message)
@@ -58,10 +60,21 @@ class Thread:
 
         return messages
 
-    def retrieve_message_and_append(self, message_id):
+    async def retrieve_message_and_append(self, message_id):
         message = Message.retrieve(self, message_id)
-        self.messages.append(message)
+        await self._add_new_message(message)
         return message
 
     def to_json(self):
         return {"id": self.id, "name": self.name}
+
+    def watch_for_new_message(self, callback):
+        self.callbacks["new_message"].append(callback)
+
+    async def _on_new_message(self, new_message):
+        for callback in self.callbacks["new_message"]:
+            await callback(new_message)
+
+    async def _add_new_message(self, new_message):
+        self.messages.append(new_message)
+        await self._on_new_message(new_message)

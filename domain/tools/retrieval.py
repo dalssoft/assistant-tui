@@ -13,5 +13,6 @@ class RetrievalTool(Tool):
             self.tool_call.retrieval.retrieval if self.tool_call.retrieval else None
         )
         return f"""
-        | retrieval: {retrieval}
+        | type: {self.type}
+            | retrieval: {retrieval}
         """

@@ -158,6 +158,9 @@ class ThreadMessagesContainer(ScrollableContainer):
         self.is_debug = event.debug
 
     async def watch_thread(self, thread):
+        if thread is None:
+            return
+        thread.watch_for_new_message(self._on_new_message)
         await self.fill_message_list(thread)
 
     async def fill_message_list(self, thread):
@@ -175,9 +178,26 @@ class ThreadMessagesContainer(ScrollableContainer):
         run = Run(assistant, thread)
         run.watch_for_status_change(self._on_status_change)
         run.watch_for_new_step(self._on_new_step)
-        run.watch_for_new_step_completed(self._on_new_step_completed)
+        run.watch_for_step_status_change(self._on_step_status_change)
         await run.create()
         await run.wait_for_completion()
+
+    async def _on_new_message(self, message):
+        if self.is_debug:
+            await self.message_list().add_debug_message(
+                f"""New message
+                | id: {message.id}
+                | role: {message.role}
+                """
+            )
+            self.message_list().scroll_end()
+
+        message_list = self.message_list()
+        await message_list.add_assistant_message(message)
+        message_list.scroll_end(animate=True, duration=0.2)
+        button = self.query_one("#send_message_button")
+        button.loading = False
+        button.disabled = False
 
     async def _on_status_change(self, thread_run):
         if self.is_debug:
@@ -198,23 +218,11 @@ class ThreadMessagesContainer(ScrollableContainer):
             )
             self.message_list().scroll_end()
 
-    async def _on_new_step_completed(self, thread_run_step):
+    async def _on_step_status_change(self, thread_run_step):
         if self.is_debug:
             await self.message_list().add_debug_message(
-                f"""New step completed
+                f"""Step status changed
                 {thread_run_step.debug()}
                 """
             )
             self.message_list().scroll_end()
-
-        if thread_run_step.type == "message_creation":
-            await self.retrieve_assistant_new_message(thread_run_step.message_id())
-
-    async def retrieve_assistant_new_message(self, message_id):
-        message_list = self.message_list()
-        message = self.thread.retrieve_message_and_append(message_id)
-        await message_list.add_assistant_message(message)
-        message_list.scroll_end(animate=True, duration=0.2)
-        button = self.query_one("#send_message_button")
-        button.loading = False
-        button.disabled = False

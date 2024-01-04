@@ -24,14 +24,17 @@ class StepList:
                 new_step = StepHandler.from_raw(self.thread_run, step)
                 await self._add_new_step(new_step)
 
-        log_action(self, "retrieve", steps)
+        log_action(self, "refresh", steps)
 
         return self
 
     def watch_for_new_step(self, callback):
         self.callbacks["new_step"].append(callback)
 
-    async def _add_new_step(self, new_step):
-        self.steps.append(new_step)
+    async def _on_new_step(self, new_step):
         for callback in self.callbacks["new_step"]:
             await callback(new_step)
+
+    async def _add_new_step(self, new_step):
+        self.steps.append(new_step)
+        await self._on_new_step(new_step)
