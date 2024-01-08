@@ -2,7 +2,7 @@
  
 This is a [textual](https://textual.textualize.io/) user interface for the for OpenAI's [Assistant](https://platform.openai.com/docs/assistants/overview) API.
 
-<p align='center'><video src="docs/AssistantTUI.mp4" controls width="100%"></video></p>
+https://github.com/dalssoft/textual-assistant/assets/209287/71d28cd9-1dd0-445d-a644-d62b255fe192
 
 # How to use
 
