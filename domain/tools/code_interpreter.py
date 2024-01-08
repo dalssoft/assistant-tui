@@ -6,7 +6,8 @@ class CodeInterpreterTool(Tool):
 
     @staticmethod
     def is_type(tool_call):
-        return tool_call.type == CodeInterpreterTool.type
+        type = tool_call.type if hasattr(tool_call, "type") else tool_call["type"]
+        return type == CodeInterpreterTool.type
 
     def debug(self):
         return f"""

@@ -6,12 +6,13 @@ class FunctionTool(Tool):
 
     @staticmethod
     def is_type(tool_call):
-        return tool_call.type == FunctionTool.type
+        type = tool_call.type if hasattr(tool_call, "type") else tool_call["type"]
+        return type == FunctionTool.type
 
     def debug(self):
         return f"""
         | type: {self.type}
-            | function: {self.tool_call.function.function}
-            | inputs: {self.tool_call.function.inputs}
-            | outputs: {self.tool_call.function.outputs}
+            | function: {self.tool_call["function"]["name"]}
+            | arguments: {self.tool_call["function"]["arguments"]}
+            | outputs: {self.tool_call["function"]["outputs"] if "outputs" in self.tool_call["function"] else None}
         """

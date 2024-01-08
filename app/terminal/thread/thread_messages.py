@@ -159,7 +159,9 @@ class ThreadMessagesContainer(ScrollableContainer):
 
     async def watch_thread(self, thread):
         if thread is None:
+            self.add_class("remove")
             return
+        self.remove_class("remove")
         thread.watch_for_new_message(self._on_new_message)
         await self.fill_message_list(thread)
 

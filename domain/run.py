@@ -116,6 +116,6 @@ class Run:
 
         while self.status in run_status_to_watch:
             log_action(self, "_polling")
-            await self.step_list.refresh()
             await self.refresh()
+            await self.step_list.refresh()
             time.sleep(0.1)

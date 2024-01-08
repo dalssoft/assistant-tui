@@ -6,7 +6,8 @@ class RetrievalTool(Tool):
 
     @staticmethod
     def is_type(tool_call):
-        return tool_call.type == RetrievalTool.type
+        type = tool_call.type if hasattr(tool_call, "type") else tool_call["type"]
+        return type == RetrievalTool.type
 
     def debug(self):
         retrieval = (

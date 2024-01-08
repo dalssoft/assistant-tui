@@ -1,13 +1,15 @@
 from os import name
+from typing import Container
 from textual import on
 from textual.app import App, ComposeResult
-from textual.containers import ScrollableContainer
+from textual.containers import ScrollableContainer, Container
 from textual.widgets import Header, Footer, Static, Select, Label, Button, Switch
 from textual.containers import Horizontal, Vertical, Middle, Center
 from textual.message import Message
 from domain.assistant import Assistant
 from log import log_action
 from textual.reactive import reactive
+import webbrowser
 
 
 class PlaceholderWithLabel(Static):
@@ -47,11 +49,60 @@ class AssistantContainer(ScrollableContainer):
     assistants = []
     assistant = None
 
+    def compose(self) -> ComposeResult:
+        yield Select(
+            options=self.assistants,
+            id="assistant_name",
+            prompt="Select an assistant",
+        )
+        with Vertical(id="empty_details"):
+            link = "https://platform.openai.com/assistants"
+            yield Center(Static("[b]Assistant Text User Interface[/b]"))
+            yield Static("Select an existing assistant from the list above.")
+            yield Static(
+                f"Or you can create an assistant using the OpenAI platform on the web: {link}"
+            )
+
+        with Vertical(id="assistant_details", classes="remove"):
+            yield PlaceholderWithLabel(
+                "Instructions:",
+                "instructions",
+                "...",
+                classes="multiline",
+            )
+            yield PlaceholderWithLabel("Model:", "model", "")
+            yield Vertical(
+                Label("Tools:", classes="label"),
+                ToolSwitch(
+                    "Code Interpreter",
+                    id="code_interpreter",
+                ),
+                ToolSwitch(
+                    "Retrival",
+                    id="retrieval",
+                ),
+                ToolSwitch(
+                    "Function",
+                    id="function",
+                ),
+                PlaceholderWithLabel("Functions:", "functions", ""),
+                classes="tools",
+            )
+            yield PlaceholderWithLabel("Files:", "files", "")
+            yield Center(Button("Use this assistant", id="use_assistant"))
+
+    def action_open_url(self, url):
+        webbrowser.open(url)
+
     def on_mount(self):
         self.list_all_assistants()
 
     @on(Select.Changed, "#assistant_name")
     def assistant_name_select_changed(self, event):
+        empty_details = self.query_one("#empty_details")
+        empty_details.add_class("remove")
+        assistant_details = self.query_one("#assistant_details")
+        assistant_details.remove_class("remove")
         self.select_assistant(event.value)
 
     @on(Button.Pressed, "#use_assistant")
@@ -98,39 +149,6 @@ class AssistantContainer(ScrollableContainer):
         self.add_class("assistant_selected")
         self.post_message(self.AssistantSelected(self.assistant))
         log_action(self, "use_assistant", self.assistant)
-
-    def compose(self) -> ComposeResult:
-        yield Select(
-            options=self.assistants,
-            id="assistant_name",
-            prompt="Select an assistant",
-        )
-        yield PlaceholderWithLabel(
-            "Instructions:",
-            "instructions",
-            "As a bakery assistant...",
-            classes="multiline",
-        )
-        yield PlaceholderWithLabel("Model:", "model", "")
-        yield Vertical(
-            Label("Tools:", classes="label"),
-            ToolSwitch(
-                "Code Interpreter",
-                id="code_interpreter",
-            ),
-            ToolSwitch(
-                "Retrival",
-                id="retrieval",
-            ),
-            ToolSwitch(
-                "Function",
-                id="function",
-            ),
-            PlaceholderWithLabel("Functions:", "functions", ""),
-            classes="tools",
-        )
-        yield PlaceholderWithLabel("Files:", "files", "")
-        yield Center(Button("Use this assistant", id="use_assistant"))
 
     class AssistantSelected(Message):
         def __init__(self, assistant):

@@ -1,5 +1,9 @@
 # ATUI - Assistant Textual User Interface
  
+This is a [textual](https://textual.textualize.io/) user interface for the for OpenAI's [Assistant](https://platform.openai.com/docs/assistants/overview) API.
+
+<p align='center'><video src="docs/AssistantTUI.mp4" controls width="100%"></video></p>
+
 # How to use
 
 ## Setup
@@ -26,6 +30,8 @@ python main.py
         - [ ] Create
         - [x] Select
         - [x] Details
+            - [x] Info
+            - [ ] Functions Details
     - [x] Thread
         - [x] Create
         - [x] Select
